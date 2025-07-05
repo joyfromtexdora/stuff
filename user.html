@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management | Swift-Med Admin</title>
+    <style>
+        /* Icon replacements */
+        .icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .icon-users::before { content: "👥"; }
+        .icon-edit::before { content: "✏"; }
+        .icon-trash::before { content: "🗑"; }
+        .icon-plus::before { content: "➕"; }
+        .icon-search::before { content: "🔍"; }
+        .icon-filter::before { content: "🔽"; }
+        .icon-download::before { content: "⬇"; }
+        .icon-home::before { content: "🏠"; }
+        .icon-logout::before { content: "🚪"; }
+        .icon-check::before { content: "✓"; }
+        .icon-times::before { content: "✕"; }
+        .icon-eye::before { content: "👁"; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 300px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-box .icon {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        .filter-select {
+            padding: 0.75rem 2rem 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+        }
+
+        /* Users Table */
+        .users-table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .users-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .users-table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-details h4 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-details p {
+            color: #718096;
+            font-size: 0.875rem;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-doctor { background: #fed7d7; color: #c53030; }
+        .role-coder { background: #bee3f8; color: #2b6cb0; }
+        .role-billing { background: #c6f6d5; color: #2f855a; }
+        .role-manager { background: #fbb6ce; color: #b83280; }
+        .role-admin { background: #faf089; color: #744210; }
+        .role-auditor { background: #e9d8fd; color: #553c9a; }
+        .role-claims { background: #fed7e2; color: #97266d; }
+        .role-coordinator { background: #c3dafe; color: #3182ce; }
+        .role-compliance { background: #ffeaa7; color: #d63031; }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .status-inactive {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-filters {
+                justify-content: center;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .users-table {
+                font-size: 0.875rem;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .user-avatar {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">Swift-Med Admin</div>
+            <nav class="header-nav">
+                <a href="/app.html">
+                    <span class="icon icon-home"></span>
+                    Dashboard
+                </a>
+                <a href="/users.html" class="active">
+                    <span class="icon icon-users"></span>
+                    Users
+                </a>
+                <a href="#" onclick="logout()">
+                    <span class="icon icon-logout"></span>
+                    Logout
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">User Management</h1>
+            <p class="page-subtitle">Manage user accounts, roles, and permissions for your medical billing system</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-users">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-users">0</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="recent-logins">0</div>
+                <div class="stat-label">Recent Logins (24h)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-roles">0</div>
+                <div class="stat-label">Different Roles</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-filters">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Search users by name or email...">
+                    <span class="icon icon-search"></span>
+                </div>
+                <select class="filter-select" id="role-filter">
+                    <option value="">All Roles</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Medical Coder">Medical Coder</option>
+                    <option value="Billing Specialist">Billing Specialist</option>
+                    <option value="Practice Manager">Practice Manager</option>
+                    <option value="Revenue Cycle Manager">Revenue Cycle Manager</option>
+                    <option value="Compliance Officer">Compliance Officer</option>
+                    <option value="Administrator">Administrator</option>
+                    <option value="Auditor">Auditor</option>
+                    <option value="Claims Specialist">Claims Specialist</option>
+                    <option value="Patient Access Coordinator">Patient Access Coordinator</option>
+                </select>
+                <select class="filter-select" id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="exportUsers()">
+                    <span class="icon icon-download"></span>
+                    Export
+                </button>
+                <button class="btn btn-primary" onclick="openAddUserModal()">
+                    <span class="icon icon-plus"></span>
+                    Add User
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table-container">
+            <div class="table-header">
+                <h3 class="table-title">All Users</h3>
+            </div>
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <!-- Users will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Add New User</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="user-form">
+                <div class="form-group">
+                    <label for="user-name">Full Name</label>
+                    <input type="text" id="user-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-email">Email Address</label>
+                    <input type="email" id="user-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-role">Role</label>
+                    <select id="user-role" required>
+                        <option value="">Select Role</option>
+                        <option value="Doctor">Doctor</option>
+                        <option value="Medical Coder">Medical Coder</option>
+                        <option value="Billing Specialist">Billing Specialist</option>
+                        <option value="Practice Manager">Practice Manager</option>
+                        <option value="Revenue Cycle Manager">Revenue Cycle Manager</option>
+                        <option value="Compliance Officer">Compliance Officer</option>
+                        <option value="Administrator">Administrator</option>
+                        <option value="Auditor">Auditor</option>
+                        <option value="Claims Specialist">Claims Specialist</option>
+                        <option value="Patient Access Coordinator">Patient Access Coordinator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user-status">Status</label>
+                    <select id="user-status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-group" id="password-group">
+                    <label for="user-password">Password</label>
+                    <input type="password" id="user-password" placeholder="Leave blank to keep current password">
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="submit-text">Add User</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let allUsers = [];
+        let filteredUsers = [];
+        let editingUser = null;
+
+        // Load users from localStorage
+        function loadUsers() {
+            const userDatabase = JSON.parse(localStorage.getItem('swiftmed_users') || '{}');
+            allUsers = Object.keys(userDatabase).map(email => ({
+                email,
+                ...userDatabase[email]
+            }));
+            filteredUsers = [...allUsers];
+            updateStats();
+            renderUsers();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const now = new Date();
+            const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            const activeUsers = allUsers.filter(user => user.status === 'Active').length;
+            const recentLogins = allUsers.filter(user => 
+                user.lastLogin && new Date(user.lastLogin) > oneDayAgo
+            ).length;
+            const uniqueRoles = [...new Set(allUsers.map(user => user.role))].length;
+
+            document.getElementById('total-users').textContent = allUsers.length;
+            document.getElementById('active-users').textContent = activeUsers;
+            document.getElementById('recent-logins').textContent = recentLogins;
+            document.getElementById('total-roles').textContent = uniqueRoles;
+        }
+
+        // Get role badge class
+        function getRoleBadgeClass(role) {
+            const roleMap = {
+                'Doctor': 'role-doctor',
+                'Medical Coder': 'role-coder',
+                'Billing Specialist': 'role-billing',
+                'Practice Manager': 'role-manager',
+                'Revenue Cycle Manager': 'role-manager',
+                'Administrator': 'role-admin',
+                'Auditor': 'role-auditor',
+                'Claims Specialist': 'role-claims',
+                'Patient Access Coordinator': 'role-coordinator',
+                'Compliance Officer': 'role-compliance'
+            };
+            return roleMap[role] || 'role-admin';
+        }
+
+        // Get user initials
+        function getUserInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        // Render users table
+        function renderUsers() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #718096;">
+                            No users found matching your criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="user-info">
+                            <div class="user-avatar">${getUserInitials(user.name || 'U')}</div>
+                            <div class="user-details">
+                                <h4>${user.name || 'Unknown'}</h4>
+                                <p>${user.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="role-badge ${getRoleBadgeClass(user.role)}">
+                            ${user.role || 'No Role'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${user.status === 'Active' ? 'status-active' : 'status-inactive'}">
+                            ${user.status || 'Active'}
+                        </span>
+                    </td>
+                    <td>${formatDate(user.lastLogin)}</td>
+                    <td>${formatDate(user.createdAt)}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="action-btn btn-secondary" onclick="viewUser('${user.email}')" title="View Details">
+                                <span class="icon icon-eye"></span>
+                            </button>
+                            <button class="action-btn btn-primary" onclick="editUser('${user.email}')" title="Edit User">
+                                <span class="icon icon-edit"></span>
+                            </button>
+                            <button class="action-btn btn-danger" onclick="deleteUser('${user.email}')" title="Delete User">
+                                <span class="icon icon-trash"></span>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Filter users
+        function filterUsers() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const roleFilter = document.getElementById('role-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+
+            filteredUsers = allUsers.filter(user => {
+                const matchesSearch = !searchTerm || 
+                    user.name?.toLowerCase().includes(searchTerm) ||
+                    user.email?.toLowerCase().includes(searchTerm);
+                
+                const matchesRole = !roleFilter || user.role === roleFilter;
+                const matchesStatus = !statusFilter || user.status === statusFilter;
+
+                return matchesSearch && matchesRole && matchesStatus;
+            });
+
+            renderUsers();
+        }
+
+        // Modal functions
+        function openAddUserModal() {
+            editingUser = null;
+            document.getElementById('modal-title').textContent = 'Add New User';
+            document.getElementById('submit-text').textContent = 'Add User';
+            document.getElementById('user-form').reset();
+            document.getElementById('user-status').value = 'Active';
+            document.getElementById('password-group').style.display = 'block';
+            document.getElementById('user-password').required = true;
+            document.getElementById('user-modal').style.display = 'block';
+        }
+
+        function editUser(email) {
+            const user = allUsers.find(u => u.email === email);
+            if (!user) return;
+
+            editingUser = email;
+            document.getElementById('modal-title').textContent = 'Edit User';
+            document.getElementById('submit-text').textContent = 'Update User';
+            
+            document.getElementById('user-name').value = user.name || '';
+            document.getElementById('user-email').value = user.email;
+            document.getElementById('user-role').value = user.role || '';
+            document.getElementById('user-status').value = user.status || 'Active';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-password').placeholder = 'Leave blank to keep current password';
+            document.getElementById('user-password').required = false;
+            
+            document.getElementById('user-modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('user-modal').style.display = 'none';
+            editingUser = null;
+        }
+
+        function viewUser(email) {
+            const user = allUsers.find(u => u.email === email);
+            if (!user) return;
+
+            alert(`User Details:\n\nName: ${user.name || 'N/A'}\nEmail: ${user.email}\nRole: ${user.role || 'N/A'}\nStatus: ${user.status || 'Active'}\nCreated: ${formatDate(user.createdAt)}\nLast Login: ${formatDate(user.lastLogin)}`);
+        }
+
+        function deleteUser(email) {
+            if (!confirm(`Are you sure you want to delete the user: ${email}?\n\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            const userDatabase = JSON.parse(localStorage.getItem('swiftmed_users') || '{}');
+            delete userDatabase[email];
+            localStorage.setItem('swiftmed_users', JSON.stringify(userDatabase));
+
+            loadUsers();
+            alert('User deleted successfully!');
+        }
+
+        // Handle form submission
+        document.getElementById('user-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('user-name').value;
+            const email = document.getElementById('user-email').value;
+            const role = document.getElementById('user-role').value;
+            const status = document.getElementById('user-status').value;
+            const password = document.getElementById('user-password').value;
+
+            if (!editingUser && !password) {
+                alert('Password is required for new users');
+                return;
+            }
+
+            const userDatabase = JSON.parse(localStorage.getItem('swiftmed_users') || '{}');
+
+            if (!editingUser && userDatabase[email]) {
+                alert('A user with this email already exists');
+                return;
+            }
+
+            if (editingUser) {
+                // Update existing user
+                const user = userDatabase[editingUser];
+                user.name = name;
+                user.role = role;
+                user.status = status;
+                if (password) {
+                    user.password = btoa(password);
+                }
+                
+                // If email changed, update the key
+                if (editingUser !== email) {
+                    delete userDatabase[editingUser];
+                    userDatabase[email] = user;
+                }
+            } else {
+                // Add new user
+                userDatabase[email] = {
+                    name: name,
+                    role: role,
+                    status: status,
+                    password: btoa(password),
+                    createdAt: new Date().toISOString(),
+                    lastLogin: null
+                };
+            }
+
+            localStorage.setItem('swiftmed_users', JSON.stringify(userDatabase));
+            loadUsers();
+            closeModal();
+            
+            alert(editingUser ? 'User updated successfully!' : 'User added successfully!');
+        });
+
+        // Export users
+        function exportUsers() {
+            const data = allUsers.map(user => ({
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin
+            }));
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `swiftmed-users-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('swiftmed_authenticated');
+                localStorage.removeItem('swiftmed_auth_time');
+                localStorage.removeItem('swiftmed_current_user');
+                window.location.href = '/auth.html';
+            }
+        }
+
+        // Event listeners
+        document.getElementById('search-input').addEventListener('input', filterUsers);
+        document.getElementById('role-filter').addEventListener('change', filterUsers);
+        document.getElementById('status-filter').addEventListener('change', filterUsers);
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('user-modal')) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            const isAuthenticated = localStorage.getItem('swiftmed_authenticated');
+            if (!isAuthenticated) {
+                window.location.href = '/auth.html';
+                return;
+            }
+
+            loadUsers();
+        });
+
+        console.log('👥 User Management Dashboard Loaded');
+        console.log('🔐 Secure user administration for Swift-Med');
+    </script>
+</body>
+</html>
